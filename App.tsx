@@ -1,118 +1,282 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+/* eslint-disable no-eval */
+/* eslint-disable prettier/prettier */
+/* eslint-disable react/no-unstable-nested-components */
+import { TouchableOpacity, StyleSheet, Text, View, ScrollView } from 'react-native';
+import Css from './styleSheet';
+import React, { useState } from 'react';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App = () => {
+  const [state, setState] = useState('0');
+  const [isBrace, setisBrace] = useState(false);
+  const op = state.slice(-1) === '+' || state.slice(-1) === '-' || state.slice(-1) === '.' || state.slice(-1) === '/' || state.slice(-1) === '%' || state.slice(-1) === '*';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  function numberHandel(value: string) {
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+    if (state === '0') {
+      setState(value);
+    } else {
+      setState(state + value);
+    }
+    // console.log(value);
+  }
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  function opratorHandel(value: string) {
+
+    if (value === 'clear') {
+      setState('0');
+    }
+    else if ( state === 'Formate Error' ) {
+          setState(value);
+    }
+    else if (value === '=') {
+      try {
+
+
+        if ((state.match(/\(/g) || []).length === (state.match(/\)/g) || []).length) {
+
+            if (op){
+              setState(eval(state.replace('()','(0)').slice(0,-1)).toString());
+            }
+            else {
+              setState(eval(state.replace('()','(0)')).toString());
+            }
+
+        }
+        else {
+          console.log('brace not matching');
+        }
+
+
+
+      } catch (error) {
+        setState('Formate Error');
+      }
+    }
+
+    else if (value === '()') {
+      if (state === '0') {
+        setState('(');
+        setisBrace(true);
+      }
+      else if (op) {
+
+        setState(state + '(');
+        setisBrace(true);
+
+      } else {
+
+        if (isBrace === true) {
+          setState(state + ')');
+          setisBrace(false);
+        }
+        else {
+          setState(state + '(');
+          setisBrace(true);
+        }
+
+      }
+    }
+
+    else if (value === 'C') {
+      setState(state.slice(0, -1));
+    }
+
+    else if (op) {
+      setState(state.slice(0, -1) + value);
+    }
+
+    else {
+      setState(state + value);
+    }
+    // console.log(value);
+  }
+
+  function calculate({ value, work }: { value: string, work: string }) {
+    if (work === 'number') {
+      numberHandel(value);
+      // setState(state + Number(value));
+    }
+    else if (work === 'oprater') {
+      opratorHandel(value);
+    }
+  }
+
+  function Button({ value, work, txt }: { value: string, work: string, txt: string }) {
+    return (
+      <TouchableOpacity style={[styles.btn]} onPress={() => { calculate({ value, work }); }} >
+        <Text style={[Css.White, styles.text]} >{txt}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function Btn({ btn }: {
+    btn:
+    {
+      txt: string,
+      value: string,
+      work: string,
+    }[]
+  }) {
+    return (
+      <View style={[Css.j_around, Css.flex]} >
+        {btn.map((i, index) => {
+          return <Button key={index} value={i.value} work={i.work} txt={i.txt} />;
+        })}
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
+    <View>
+      <ScrollView style={[styles.top]} >
+        <Text style={[styles.text,styles.display]}>{state.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')}</Text>
+      </ScrollView>
+      <View style={[styles.bot, Css.j_around]} >
+        <Btn btn={[
           {
-            color: isDarkMode ? Colors.white : Colors.black,
+            txt: 'AC',
+            value: 'clear',
+            work: 'oprater',
           },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
           {
-            color: isDarkMode ? Colors.light : Colors.dark,
+            txt: '( )',
+            value: '()',
+            work: 'oprater',
           },
-        ]}>
-        {children}
-      </Text>
+          {
+            txt: '%',
+            value: ' %',
+            work: 'oprater',
+          },
+          {
+            txt: '/',
+            value: '/',
+            work: 'oprater',
+          },
+        ]} />
+        <Btn btn={[
+          {
+            txt: '7',
+            value: '7',
+            work: 'number',
+          },
+          {
+            txt: '8',
+            value: '8',
+            work: 'number',
+          },
+          {
+            txt: '9',
+            value: '9',
+            work: 'number',
+          },
+          {
+            txt: 'X',
+            value: '*',
+            work: 'oprater',
+          },
+        ]} />
+        <Btn btn={[
+          {
+            txt: '4',
+            value: '4',
+            work: 'number',
+          },
+          {
+            txt: '5',
+            value: '5',
+            work: 'number',
+          },
+          {
+            txt: '6',
+            value: '6',
+            work: 'number',
+          },
+          {
+            txt: '-',
+            value: '-',
+            work: 'oprater',
+          },
+        ]} />
+        <Btn btn={[
+          {
+            txt: '1',
+            value: '1',
+            work: 'number',
+          },
+          {
+            txt: '2',
+            value: '2',
+            work: 'number',
+          },
+          {
+            txt: '3',
+            value: '3',
+            work: 'number',
+          },
+          {
+            txt: '+',
+            value: '+',
+            work: 'oprater',
+          },
+        ]} />
+        <Btn btn={[
+          {
+            txt: '0',
+            value: '0',
+            work: 'number',
+          },
+          {
+            txt: '.',
+            value: '.',
+            work: 'oprater',
+          },
+          {
+            txt: 'C',
+            value: 'C',
+            work: 'oprater',
+          },
+          {
+            txt: '=',
+            value: '=',
+            work: 'oprater',
+          },
+        ]} />
+
+      </View>
     </View>
   );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
+
+const styles = StyleSheet.create({
+  top: {
+    height: hp('40%'),
+    backgroundColor: 'grey',
+    // justifyContent: 'flex-end',
+    // alignItems: 'flex-end',
+  },
+  bot: {
+    height: hp('60%'),
+    backgroundColor: 'white',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+  },
+  display:{fontSize : 50},
+  text: {
+    fontSize: 30,
+    color: 'white',
+  },
+  btn: {
+    height: wp('20%'),
+    width: wp('20%'),
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // borderRadius: 50,
+  },
+});
